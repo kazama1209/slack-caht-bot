@@ -28,7 +28,7 @@ jobs:
       - name: Setup Dependencies
         run: npm ci
       - name: Deploy
-        run: npm run cdk-deploy
+        run: cdk deploy --require-approval never
         env:
           AWS_DEFAULT_REGION: ap-northeast-1
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
