@@ -4,8 +4,6 @@ import {
   App,
   ExpressReceiver,
   BlockAction,
-  StaticSelectAction,
-  ViewOutput,
 } from "@slack/bolt"
 import { LogLevel } from "@slack/logger"
 
@@ -49,60 +47,59 @@ export const handler = (
 }
 
 // スラッシュコマンド「/animals」が実行された際の処理
-app.command("/animals", async ({ ack, context, payload }) => {
+app.command("/animals", async ({ ack, client, payload }) => {
   await ack()
 
   // 質問用のモーダル画面を表示
-  await app.client.views.open({
-    token: context.botToken as string,
+  await client.views.open({
     trigger_id: payload.trigger_id,
     view: question,
   })
 })
 
-interface SlackActionBody extends BlockAction {
-  view: ViewOutput
-}
-
 // action_id = select-optionのアクションが実行された際の処理（今回で言えば選択肢を選んだ際）
-app.action("select-option", async ({ ack, action, body, context }) => {
+app.action<BlockAction>("select-option", async ({ ack, client, action, body, logger }) => {
   await ack()
 
-  const selectedOption: string = (action as StaticSelectAction).selected_option
-    .value
+  if (typeof body.view !== "undefined" && action.type === "static_select") {
+    const selectedOption: string = action.selected_option.value
 
-  // 選択肢によって返すビューを変更
-  const answer = (selectedOption: string) => {
-    switch (selectedOption) {
-      case "dog":    // イヌの場合
-        return dog
-      case "cat":    // ネコの場合
-        return cat
-      case "rabbit": // ウサギの場合
-        return rabbit
-      default:
-        return question
+    // 選択肢によって返すビューを変更
+    const answer = (selectedOption: string) => {
+      switch (selectedOption) {
+        case "dog":    // イヌの場合
+          return dog
+        case "cat":    // ネコの場合
+          return cat
+        case "rabbit": // ウサギの場合
+          return rabbit
+        default:
+          return question
+      }
     }
-  }
+  
+    // 選択肢に合わせてモーダル画面を更新
+    await client.views.update({
+      view_id: body.view.id,
+      view: answer(selectedOption),
+    })
 
-  // 選択肢に合わせてモーダル画面を更新
-  await app.client.views.update({
-    token: context.botToken as string,
-    view_id: (body as SlackActionBody).view.id,
-    view: answer(selectedOption),
-  })
+  } else {
+    logger.info(`Skipped because the button 'select-option' is not placed in a modal: ${JSON.stringify(action)}`)
+  }
 })
 
 // action_id = select-option-resetのアクションが実行された際の処理（今回で言えば戻るボタンを押した際）
-app.action("select-option-reset", async ({ ack, body, context }) => {
+app.action<BlockAction>("select-option-reset", async ({ ack, body, client }) => {
   await ack()
 
-  // モーダル画面を更新（最初の質問に戻す）
-  await app.client.views.update({
-    token: context.botToken as string,
-    view_id: (body as SlackActionBody).view.id,
-    view: question,
-  })
+  if (typeof body.view !== "undefined") {
+    // モーダル画面を更新（最初の質問に戻す）
+    await client.views.update({
+      view_id: body.view.id,
+      view: question,
+    })
+  }  
 })
 
 // ローカル環境においては通常起動
