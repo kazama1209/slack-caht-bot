@@ -1,14 +1,7 @@
-# Welcome to your CDK TypeScript project!
+## slack-caht-bot
 
-This is a blank project for TypeScript development with CDK.
+![タイトルなし (1)](https://user-images.githubusercontent.com/51913879/129463097-664c0698-f304-4edd-8e15-a2da64a717c9.gif)
 
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
+Bolt + TypeScript ＋ AWS CDK + GitHub Actions で作るチャットボット風Slackアプリ。詳細はQiitaにて記載。
 
-## Useful commands
-
- * `npm run build`   compile typescript to js
- * `npm run watch`   watch for changes and compile
- * `npm run test`    perform the jest unit tests
- * `cdk deploy`      deploy this stack to your default AWS account/region
- * `cdk diff`        compare deployed stack with current state
- * `cdk synth`       emits the synthesized CloudFormation template
+https://qiita.com/kazama1209/items/380b3a938f0a02903502
